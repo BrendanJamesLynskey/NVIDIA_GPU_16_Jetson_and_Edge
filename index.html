@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVIDIA GPU Architectures 16 — Jetson and Edge AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-card: #0d1117;
+            --bg-code: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #76B900;
+            --accent-dim: #76B90044;
+            --accent-glow: #76B90033;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ── Header ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .series-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 .accent {
+            color: var(--accent);
+        }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Tag Pills ── */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+            white-space: nowrap;
+        }
+
+        /* ── Pipeline Flow Bar ── */
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            max-width: var(--max-width);
+        }
+
+        .pipeline-step {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .pipeline-arrow {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* ── Slides ── */
+        .slide {
+            min-height: 100vh;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-dim);
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            line-height: 1.25;
+        }
+
+        .slide h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .slide p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .slide p strong {
+            color: var(--text-primary);
+        }
+
+        .slide ul, .slide ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .slide li {
+            margin-bottom: 0.4rem;
+        }
+
+        .slide li strong {
+            color: var(--text-primary);
+        }
+
+        /* ── Code Blocks ── */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #c9d1d9;
+        }
+
+        /* Syntax highlighting (manual) */
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .cm { color: #8b949e; font-style: italic; }
+        .num { color: #79c0ff; }
+        .type { color: #ffa657; }
+        .dir { color: #ff7b72; }
+        .mac { color: #ffa657; }
+
+        /* ── Tables ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.25rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-code);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(13, 17, 23, 0.5);
+        }
+
+        /* ── Diagrams ── */
+        .diagram-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-box {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .diagram-box.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        .diagram-box.dim {
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .diagram-arrow {
+            color: var(--accent);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Vertical flow diagrams */
+        .diagram-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-vertical .diagram-arrow {
+            font-size: 1.1rem;
+        }
+
+        /* Nested hierarchy diagram */
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .hierarchy-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .hierarchy-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .hierarchy-item {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .hierarchy-item.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        /* Grid diagram */
+        .diagram-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-grid.cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .diagram-grid.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .diagram-panel {
+            padding: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .diagram-panel.accent-border {
+            border-left: 3px solid var(--accent);
+        }
+
+        .diagram-panel h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .diagram-panel p, .diagram-panel ul {
+            font-size: 0.85rem;
+        }
+
+        /* ── Callout Boxes ── */
+        .callout {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+
+        .callout p {
+            margin-bottom: 0;
+        }
+
+        .callout .callout-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Tier Visual ── */
+        .tier-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .tier-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tier-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .tier-fill {
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            transition: width 0.6s ease;
+        }
+
+        .tier-cost {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        /* ── Contents list ── */
+        .contents-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: contents;
+        }
+
+        .contents-list li {
+            counter-increment: contents;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contents-list li:last-child {
+            border-bottom: none;
+        }
+
+        .contents-list li::before {
+            content: counter(contents, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 2rem;
+        }
+
+        .contents-list a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contents-list a:hover {
+            color: var(--accent);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .slide {
+                padding: 3rem 1rem;
+                min-height: auto;
+            }
+
+            .slide-number {
+                font-size: 3rem;
+                top: 1.5rem;
+                right: 1rem;
+            }
+
+            .slide h2 {
+                font-size: 1.5rem;
+            }
+
+            .diagram-grid.cols-2,
+            .diagram-grid.cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline {
+                gap: 0.15rem;
+            }
+
+            .pipeline-step {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.4rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            table {
+                font-size: 0.78rem;
+            }
+
+            .tier-label {
+                min-width: 60px;
+                font-size: 0.65rem;
+            }
+
+            .tier-fill {
+                font-size: 0.6rem;
+                height: 26px;
+            }
+        }
+
+        /* ── Interactive controls (added for Local LLM series) ── */
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .control-row label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-width: 180px;
+        }
+        .control-row input[type="range"] {
+            flex: 1;
+            min-width: 160px;
+            accent-color: var(--accent);
+        }
+        .control-row input[type="number"],
+        .control-row select {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            padding: 0.3rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+        .control-row .val {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 80px;
+            text-align: right;
+        }
+        .btn {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 0.4rem 0.9rem;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .btn:hover { background: rgba(118, 185, 0, 0.2); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.secondary {
+            background: var(--bg-code);
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+        .result-box {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-top: 0.75rem;
+        }
+        .result-box .line-label { color: var(--text-secondary); }
+        .result-box .line-val   { color: var(--accent); font-weight: 600; }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .metric {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            text-align: center;
+        }
+        .metric .metric-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .metric .metric-value {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 0.2rem;
+        }
+
+        /* Canvas / SVG containers */
+        .canvas-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.25rem 0;
+            overflow-x: auto;
+        }
+        .canvas-wrap canvas,
+        .canvas-wrap svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        /* Small inline badge */
+        .badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: middle;
+            margin-left: 0.3rem;
+        }
+        .badge.ok    { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .badge.warn  { border-color: #ffa657; color: #ffa657; background: rgba(255,166,87,0.08); }
+        .badge.bad   { border-color: #ff7b72; color: #ff7b72; background: rgba(255,123,114,0.08); }
+
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">NVIDIA GPU Architectures Series — Presentation 16</div>
+    <h1><span class="accent">Jetson</span> &mdash; NVIDIA's Edge AI and Robotics Stack</h1>
+    <p class="subtitle">Same CUDA, dramatically smaller power envelope. Walk through the Jetson family — Orin Nano, Orin NX, AGX Orin, and the upcoming Thor — plus Holoscan for medical edge, Isaac for robotics, DeepStream for video, and JetPack as the BSP that ties it together.</p>
+
+    <div class="tags">
+        <span class="tag">Jetson Orin</span><span class="tag">AGX Orin</span><span class="tag">Orin NX</span>
+        <span class="tag">Orin Nano</span><span class="tag">Thor</span><span class="tag">JetPack</span>
+        <span class="tag">L4T</span><span class="tag">Holoscan</span>
+        <span class="tag">Isaac</span><span class="tag">DeepStream</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">SoC</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">JetPack</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Holoscan/Isaac/DeepStream</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Sensors</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Edge LLM</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Fleet</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <p>A grounded tour of NVIDIA's edge stack &mdash; from the SoC die through the BSP up to the application frameworks &mdash; and what it actually feels like to deploy a model on a 15-watt brick.</p>
+    <ul class="contents-list">
+        <li><a href="#slide-01">Edge AI in 2026 &mdash; Where the GPUs Live</a></li>
+        <li><a href="#slide-02">Tegra &rarr; Jetson &mdash; A Brief Lineage</a></li>
+        <li><a href="#slide-03">Jetson Orin Family &mdash; The Workhorse</a></li>
+        <li><a href="#slide-04">The Orin SoC Internals</a></li>
+        <li><a href="#slide-05">Jetson Thor &mdash; The 2025 Successor</a></li>
+        <li><a href="#slide-06">JetPack &mdash; The Software Stack</a></li>
+        <li><a href="#slide-07">Holoscan &mdash; Real-Time Sensor AI</a></li>
+        <li><a href="#slide-08">Isaac &mdash; Robotics Platform</a></li>
+        <li><a href="#slide-09">DeepStream &mdash; Video Analytics at the Edge</a></li>
+        <li><a href="#slide-10">LLMs at the Edge &mdash; Practical Numbers</a></li>
+        <li><a href="#slide-11">Interactive: Edge Use-Case Picker</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>Edge AI in 2026 &mdash; Where the GPUs Live</h2>
+    <p>Not every model runs in a cloud datacenter. Inference happens on devices: in cars, robots, factory cells, surgical theatres, drones, smart cameras, and increasingly on the lab desk. The hardware question isn't <em>"how much DGX can we buy?"</em>, it's <em>"what fits in this enclosure, this power budget, this thermal envelope, this BOM?"</em></p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>The hard constraints</h4>
+            <ul>
+                <li><strong>Power</strong> &mdash; 5&ndash;60 W typical; battery devices want &lt;15 W.</li>
+                <li><strong>Thermal</strong> &mdash; passive heatsink or a small fan; no datacenter air.</li>
+                <li><strong>Latency</strong> &mdash; can't round-trip to cloud; control loops want &lt;10 ms, perception &lt;50 ms.</li>
+                <li><strong>Connectivity</strong> &mdash; intermittent, expensive, or absent.</li>
+                <li><strong>Cost</strong> &mdash; $200&ndash;$2000 per shipped unit, not per hour.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>What the edge wants from a GPU</h4>
+            <ul>
+                <li>Real CUDA &mdash; the same kernels you trained with.</li>
+                <li>TensorRT &mdash; INT8 / FP16 / FP8 graph optimisation.</li>
+                <li>Hardware video codecs (NVENC/NVDEC) for camera streams.</li>
+                <li>Image signal processors and direct sensor capture (CSI, GMSL).</li>
+                <li>A real Linux distribution with proper drivers.</li>
+                <li>Containers: pull the same image you ran in the cloud.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="diagram-flow">
+        <div class="diagram-box">Cars</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Robots</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Factories</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Surgical theatres</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Drones</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Smart cameras</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box accent">Lab desks</div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">NVIDIA's edge answer</div>
+        <p>The Jetson family scales the same software stack down from <em>200+ TOPS at 60 W</em> (AGX Orin) to <em>20 TOPS at 7 W</em> (Orin Nano) &mdash; same CUDA, same TensorRT, same containers. That portability is the platform's real moat: a model trained on an H100 in the cloud runs on a 15 W brick in a robot wrist <strong>without re-engineering the model</strong>.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Tegra &rarr; Jetson &mdash; A Brief Lineage</h2>
+    <p>Tegra is the original mobile / automotive SoC line that NVIDIA started shipping in 2008. It powered the Nintendo Switch, early Tesla autopilot, and Shield TV. Jetson is the same silicon repurposed for AI dev kits and embedded deployment &mdash; with the GPU pulled forward to whatever the current desktop architecture is.</p>
+
+    <div class="hierarchy">
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">2014</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">Jetson TK1</div>
+                <div class="hierarchy-item">Kepler GPU</div>
+                <div class="hierarchy-item">first AI dev kit</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">2015&ndash;17</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">TX1</div>
+                <div class="hierarchy-item">Maxwell</div>
+                <div class="hierarchy-item">TX2</div>
+                <div class="hierarchy-item">Pascal</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">2018</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">Xavier / AGX Xavier</div>
+                <div class="hierarchy-item">Volta</div>
+                <div class="hierarchy-item">first DLA</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">2019&ndash;22</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">Nano (legacy)</div>
+                <div class="hierarchy-item">Maxwell budget</div>
+                <div class="hierarchy-item">$99 entry</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">2022+</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item accent">Orin Nano / NX / AGX</div>
+                <div class="hierarchy-item accent">Ampere SM</div>
+                <div class="hierarchy-item">current workhorse</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">2025+</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item accent">Jetson Thor</div>
+                <div class="hierarchy-item accent">Blackwell SM</div>
+                <div class="hierarchy-item">FP4 native</div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Tegra family beyond Jetson</h3>
+    <p>The same Tegra silicon also lives inside the <strong>NVIDIA Drive</strong> automotive platform &mdash; <em>Drive Orin</em> for current ADAS / L2+ deployments, and <em>Drive Thor</em> announced for L4 / robotaxi-class compute. Drive shares Jetson's SoC but adds automotive-grade qualification (AEC-Q100, ASIL-D safety island, lock-step cores). If you understand Jetson, you understand Drive at the silicon level.</p>
+
+    <div class="callout">
+        <div class="callout-label">The naming pattern</div>
+        <p>Each Tegra generation gets a codename that's also the GPU architecture for the discrete card line two years earlier. <em>Orin</em> uses Ampere SMs (RTX 30xx, A100). <em>Thor</em> uses Blackwell SMs (B200, RTX 50xx). So a Jetson generation is roughly <em>"datacenter GPU minus two years, in a 15&ndash;60 W envelope, with sensor IO bolted on."</em></p>
+    </div>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>Jetson Orin Family &mdash; The Workhorse</h2>
+    <p>Six SKUs cover the range from a $250 student dev kit to a $1999 industrial brick. All run the same <strong>Linux for Tegra</strong> (L4T), the same JetPack BSP, the same CUDA. You pick the brick by power envelope and TOPS budget.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>SKU</th><th>CUDA cores</th><th>Sparse INT8 TOPS</th><th>RAM</th><th>Power</th><th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Orin Nano 4 GB</strong></td><td>1024 (Ampere)</td><td>~20</td><td>4 GB LPDDR5</td><td>7&ndash;15 W</td><td>$250 dev kit</td></tr>
+                <tr><td><strong>Orin Nano 8 GB</strong></td><td>1024</td><td>~40</td><td>8 GB LPDDR5</td><td>7&ndash;15 W</td><td>$499 dev kit</td></tr>
+                <tr><td><strong>Orin NX 8 GB</strong></td><td>1024</td><td>~70</td><td>8 GB LPDDR5</td><td>10&ndash;20 W</td><td>$399 module</td></tr>
+                <tr><td><strong>Orin NX 16 GB</strong></td><td>1024</td><td>~100</td><td>16 GB LPDDR5</td><td>10&ndash;25 W</td><td>$599 module</td></tr>
+                <tr><td><strong>AGX Orin 32 GB</strong></td><td>1792</td><td>~200</td><td>32 GB LPDDR5</td><td>15&ndash;40 W</td><td>$1499 dev kit</td></tr>
+                <tr><td><strong>AGX Orin 64 GB</strong></td><td>2048</td><td>~275</td><td>64 GB LPDDR5</td><td>15&ndash;60 W</td><td>$1999 dev kit</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>Where each tier lands in practice</h3>
+    <div class="tier-visual">
+        <div class="tier-bar">
+            <div class="tier-label">Orin Nano</div>
+            <div class="tier-fill" style="width: 18%; background: rgba(165,214,255,0.5); color: #a5d6ff;">7&ndash;15 W</div>
+            <div class="tier-cost">smart camera, hobbyist robotics, edge sensors</div>
+        </div>
+        <div class="tier-bar">
+            <div class="tier-label">Orin NX</div>
+            <div class="tier-fill" style="width: 38%; background: rgba(118,185,0,0.5); color: #76B900;">10&ndash;25 W</div>
+            <div class="tier-cost">drones, ROS robots, multi-cam analytics</div>
+        </div>
+        <div class="tier-bar">
+            <div class="tier-label">AGX Orin 32</div>
+            <div class="tier-fill" style="width: 65%; background: rgba(210,168,255,0.5); color: #d2a8ff;">15&ndash;40 W</div>
+            <div class="tier-cost">autonomous mobile robots, surgical aux</div>
+        </div>
+        <div class="tier-bar">
+            <div class="tier-label">AGX Orin 64</div>
+            <div class="tier-fill" style="width: 100%; background: rgba(255,166,87,0.5); color: #ffa657;">15&ndash;60 W</div>
+            <div class="tier-cost">flagship: edge LLMs, Holoscan, multi-stream DeepStream</div>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Module vs dev kit</div>
+        <p>Orin NX ships only as a <strong>SoM</strong> (system-on-module) &mdash; you buy a carrier board (yours or a partner's) and bolt the module on. AGX Orin and Orin Nano have official NVIDIA dev kits with a carrier included; in production designs you typically use the bare SoM and a custom carrier. The <em>connector and module pinout</em> is shared between AGX Orin and AGX Xavier (and is largely shared with Thor) so a well-designed carrier outlasts one generation.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>The Orin SoC Internals</h2>
+    <p>Orin is more than a GPU bolted to an ARM &mdash; it is a <strong>heterogeneous compute SoC</strong> with eight named accelerators. Understanding which engine to schedule each pipeline stage on is what separates a 200 TOPS sticker from 200 TOPS in practice.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>CPU + safety complex</h4>
+            <ul>
+                <li><strong>8&times; ARM Cortex-A78AE</strong> &mdash; "AE" is the functional safety variant of the A78; supports lockstep pairing for ASIL-rated workloads.</li>
+                <li><strong>Cortex-R52 safety island</strong> &mdash; an independent realtime CPU for boot integrity, watchdogs and failover.</li>
+                <li><strong>Security island</strong> &mdash; root of trust, fuses, secure boot key storage, crypto engine.</li>
+                <li>Up to 12 MB L2 + 4 MB L3, all coherent over the on-chip fabric.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>GPU + AI accelerators</h4>
+            <ul>
+                <li><strong>Ampere GPU</strong> &mdash; 1024&ndash;2048 CUDA cores, 32&ndash;64 tensor cores, FP16/BF16/INT8.</li>
+                <li><strong>2&times; DLA</strong> (Deep Learning Accelerator) &mdash; fixed-function INT8 NN engines; hand off conv/pool layers to free the GPU for higher-precision work.</li>
+                <li><strong>PVA</strong> (Programmable Vision Accelerator) &mdash; classical CV (stereo, optical flow, feature tracking).</li>
+                <li><strong>VIC</strong> &mdash; image format conversion / scaling without touching the GPU.</li>
+                <li><strong>2&times; ISP</strong> &mdash; raw sensor &rarr; YUV pipeline (Bayer demosaic, denoise, AE/AWB).</li>
+                <li><strong>NVENC / NVDEC</strong> &mdash; H.264/H.265/AV1 encode and decode.</li>
+                <li><strong>12&times; CSI lanes</strong> &mdash; up to 16 cameras via virtual channels.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="canvas-wrap">
+        <svg viewBox="0 0 720 320" width="720" height="320" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                .die  { fill: #161b22; stroke: #30363d; }
+                .blk  { fill: #0d1117; stroke: #30363d; }
+                .blk-cpu { fill: rgba(165,214,255,0.2); stroke: #a5d6ff; }
+                .blk-gpu { fill: rgba(118,185,0,0.2);   stroke: #76B900; }
+                .blk-ai  { fill: rgba(210,168,255,0.2); stroke: #d2a8ff; }
+                .blk-io  { fill: rgba(255,166,87,0.2);  stroke: #ffa657; }
+                .lbl  { fill: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+                .h    { fill: #76B900; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13px; }
+                .sub  { fill: #8b949e; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
+            </style>
+            <text x="10" y="18" class="h">AGX Orin SoC &mdash; floor-plan sketch</text>
+            <rect x="10" y="30" width="700" height="270" class="die"/>
+
+            <!-- CPU complex -->
+            <rect x="25" y="45" width="200" height="100" class="blk-cpu"/>
+            <text x="35" y="62" class="lbl">CPU complex</text>
+            <text x="35" y="80" class="sub">8&times; Cortex-A78AE (safety)</text>
+            <text x="35" y="95" class="sub">Cortex-R52 safety island</text>
+            <text x="35" y="110" class="sub">Security island / RoT</text>
+            <text x="35" y="125" class="sub">12 MB L2 + 4 MB L3</text>
+
+            <!-- GPU -->
+            <rect x="240" y="45" width="220" height="100" class="blk-gpu"/>
+            <text x="250" y="62" class="lbl">Ampere GPU</text>
+            <text x="250" y="80" class="sub">1024&ndash;2048 CUDA cores</text>
+            <text x="250" y="95" class="sub">32&ndash;64 tensor cores</text>
+            <text x="250" y="110" class="sub">FP16 / BF16 / INT8</text>
+            <text x="250" y="125" class="sub">CUDA + cuDNN + TensorRT</text>
+
+            <!-- DLA -->
+            <rect x="475" y="45" width="220" height="100" class="blk-ai"/>
+            <text x="485" y="62" class="lbl">2&times; DLA</text>
+            <text x="485" y="80" class="sub">Fixed-fn INT8 NN engine</text>
+            <text x="485" y="95" class="sub">Hand-off conv / pool</text>
+            <text x="485" y="110" class="sub">Frees GPU for FP work</text>
+            <text x="485" y="125" class="sub">Together: 200+ TOPS</text>
+
+            <!-- IO row -->
+            <rect x="25" y="160" width="160" height="125" class="blk-ai"/>
+            <text x="35" y="178" class="lbl">PVA</text>
+            <text x="35" y="195" class="sub">Programmable</text>
+            <text x="35" y="208" class="sub">Vision Accelerator</text>
+            <text x="35" y="225" class="sub">Stereo, optflow,</text>
+            <text x="35" y="238" class="sub">feature tracking</text>
+            <text x="35" y="255" class="sub">VIC: format conv,</text>
+            <text x="35" y="268" class="sub">scaling, blend</text>
+
+            <rect x="200" y="160" width="180" height="125" class="blk-io"/>
+            <text x="210" y="178" class="lbl">2&times; ISP</text>
+            <text x="210" y="195" class="sub">Raw &rarr; YUV pipeline</text>
+            <text x="210" y="208" class="sub">Bayer demosaic</text>
+            <text x="210" y="221" class="sub">AE / AWB / denoise</text>
+            <text x="210" y="240" class="sub">12&times; CSI-2 lanes</text>
+            <text x="210" y="253" class="sub">up to 16 cams via VC</text>
+            <text x="210" y="270" class="sub">GMSL via deserializer</text>
+
+            <rect x="395" y="160" width="135" height="125" class="blk-io"/>
+            <text x="405" y="178" class="lbl">NVENC</text>
+            <text x="405" y="195" class="sub">H.264/265/AV1 encode</text>
+            <text x="405" y="218" class="lbl">NVDEC</text>
+            <text x="405" y="235" class="sub">Same family decode</text>
+            <text x="405" y="258" class="sub">Zero-copy to GPU</text>
+
+            <rect x="545" y="160" width="150" height="125" class="blk-cpu"/>
+            <text x="555" y="178" class="lbl">Memory</text>
+            <text x="555" y="195" class="sub">LPDDR5 unified</text>
+            <text x="555" y="208" class="sub">204 GB/s (AGX 64)</text>
+            <text x="555" y="225" class="sub">Coherent for CPU+GPU</text>
+            <text x="555" y="248" class="sub">PCIe Gen4 root</text>
+            <text x="555" y="261" class="sub">10/25 GbE, USB-C 3.2</text>
+        </svg>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Why the DLAs matter</div>
+        <p>Each DLA delivers ~50 TOPS INT8 at &lt;5 W &mdash; <em>more efficient per watt than the GPU</em> for the layers it supports (basic conv/pool, no fancy ops). On AGX Orin 64 GB, the headline 275 sparse-INT8 TOPS is roughly <strong>170 from the GPU plus ~100 from the two DLAs</strong>. TensorRT can split a graph across GPU and DLA automatically with <code>setDeviceType</code>; the practical recipe is "DLA for the perception backbone, GPU for the head".</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Jetson Thor &mdash; The 2025 Successor</h2>
+    <p>Thor is the first Blackwell-generation Jetson. It targets the workloads that didn't fit on Orin: humanoid robots, autonomous trucks, surgical robotics, large industrial automation cells &mdash; anywhere multi-modal models, transformer-based perception, and <em>edge LLMs</em> are part of the closed-loop stack.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Compute</h4>
+            <ul>
+                <li><strong>Blackwell GPU</strong> with 5th-gen tensor cores including <strong>FP4</strong> (MX-FP4) and FP8.</li>
+                <li>Targets <strong>1500&ndash;2000 sparse FP4 TOPS</strong>.</li>
+                <li><strong>14&times; ARM Neoverse V3AE</strong> &mdash; server-class out-of-order cores with the AE safety variant.</li>
+                <li>Transformer Engine inherits everything from H100/B200.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Memory and IO</h4>
+            <ul>
+                <li><strong>128 GB LPDDR5x unified</strong> &mdash; CPU and GPU share one pool.</li>
+                <li><strong>~273 GB/s</strong> aggregate memory bandwidth.</li>
+                <li>Power envelope <strong>30&ndash;130 W</strong>, configurable per design.</li>
+                <li>Mostly drop-in carrier compatibility with AGX Orin SoM-style designs &mdash; <em>your existing carrier has a sporting chance of working</em>.</li>
+                <li>QSFP / 100 GbE, multi-cam GMSL, PCIe Gen5.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h3>Headline targets</h3>
+    <div class="diagram-flow">
+        <div class="diagram-box accent">Humanoid robots</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Boston Dynamics</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Figure</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Apptronik</div>
+    </div>
+    <div class="diagram-flow">
+        <div class="diagram-box accent">Autonomous trucks</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">Plus</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box">TuSimple</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box accent">Surgical robotics</div>
+        <span class="diagram-arrow">&middot;</span>
+        <div class="diagram-box accent">Industrial cells</div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">What Thor unlocks vs Orin</div>
+        <p>Two things, mostly. First, <strong>FP4 inference</strong> means a 70B-class model halves again on top of FP8 &mdash; a 70B at FP4 fits in roughly 35 GB, leaving headroom for KV cache. Second, <strong>128 GB unified memory</strong> means you can keep an 8&ndash;14B vision-language model resident next to a perception stack and an action policy, all sharing the same RAM pool with zero copies. Orin had to choose; Thor doesn't.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>JetPack &mdash; The Software Stack</h2>
+    <p>JetPack is the BSP and SDK bundle that turns a Jetson SoM into something you can <code>apt install</code> things on. It is what makes a Jetson different from a generic ARM SBC with a Mali GPU.</p>
+
+    <div class="hierarchy">
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">L0 Kernel</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">L4T (Linux for Tegra)</div>
+                <div class="hierarchy-item">Ubuntu base 22.04 / 24.04</div>
+                <div class="hierarchy-item">NVIDIA kernel + display</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">L1 Compute</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item accent">CUDA</div>
+                <div class="hierarchy-item accent">cuDNN</div>
+                <div class="hierarchy-item accent">TensorRT</div>
+                <div class="hierarchy-item">cuBLAS / cuFFT</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">L2 Sensor IO</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">libargus (camera)</div>
+                <div class="hierarchy-item">V4L2</div>
+                <div class="hierarchy-item">GStreamer + nvenc/dec</div>
+                <div class="hierarchy-item">VPI (vision primitives)</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">L3 Frameworks</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item">PyTorch (ARM64 wheel)</div>
+                <div class="hierarchy-item">TensorFlow</div>
+                <div class="hierarchy-item">ONNX Runtime</div>
+                <div class="hierarchy-item">Triton</div>
+            </div>
+        </div>
+        <div class="hierarchy-level">
+            <div class="hierarchy-label">L4 Apps</div>
+            <div class="hierarchy-items">
+                <div class="hierarchy-item accent">DeepStream</div>
+                <div class="hierarchy-item accent">Holoscan</div>
+                <div class="hierarchy-item accent">Isaac ROS</div>
+                <div class="hierarchy-item">cuOpt</div>
+                <div class="hierarchy-item">AI Enterprise</div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Release cadence</h3>
+    <ul>
+        <li><strong>JetPack 5.x</strong> &mdash; final wave for Xavier, transitional for Orin.</li>
+        <li><strong>JetPack 6.x</strong> &mdash; current Orin line (2024); Ubuntu 22.04 base, CUDA 12.x, TensorRT 10.</li>
+        <li><strong>JetPack 7.x</strong> &mdash; expected 2025&ndash;2026 with Thor support, Ubuntu 24.04, CUDA 13, FP4 kernels.</li>
+    </ul>
+
+    <p>The headline reason JetPack matters: it ships <strong>ARM64 PyTorch / TensorFlow / ONNX Runtime wheels built against the right CUDA version</strong> for the SoC. <code>pip install torch</code> from PyPI gives you a CPU-only wheel; the JetPack-bundled wheel actually uses the GPU. Same applies to <code>onnxruntime-gpu</code> and the various Triton backends.</p>
+
+    <div class="code-block">
+        <div class="code-header">A first kernel on Jetson &mdash; same as desktop CUDA</div>
+        <pre><code><span class="cm">// Identical to anything you'd run on an H100 or 4090.</span>
+<span class="cm">// Same cudaMalloc, same kernel-launch syntax, same nvcc.</span>
+<span class="dir">#include</span> <span class="str">&lt;cuda_runtime.h&gt;</span>
+
+<span class="kw">__global__</span> <span class="kw">void</span> <span class="fn">add</span>(<span class="kw">const</span> <span class="type">float</span>* a, <span class="kw">const</span> <span class="type">float</span>* b, <span class="type">float</span>* c, <span class="kw">int</span> n) {
+    <span class="kw">int</span> i = blockIdx.x * blockDim.x + threadIdx.x;
+    <span class="kw">if</span> (i &lt; n) c[i] = a[i] + b[i];
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">const</span> <span class="kw">int</span> N = <span class="num">1</span> &lt;&lt; <span class="num">20</span>;
+    <span class="type">float</span> *a, *b, *c;
+    <span class="cm">// On Jetson, prefer cudaMallocManaged &mdash; CPU and GPU share LPDDR5.</span>
+    <span class="fn">cudaMallocManaged</span>(&amp;a, N * <span class="kw">sizeof</span>(<span class="type">float</span>));
+    <span class="fn">cudaMallocManaged</span>(&amp;b, N * <span class="kw">sizeof</span>(<span class="type">float</span>));
+    <span class="fn">cudaMallocManaged</span>(&amp;c, N * <span class="kw">sizeof</span>(<span class="type">float</span>));
+
+    add&lt;&lt;&lt;(N + <span class="num">255</span>) / <span class="num">256</span>, <span class="num">256</span>&gt;&gt;&gt;(a, b, c, N);
+    <span class="fn">cudaDeviceSynchronize</span>();
+    <span class="fn">cudaFree</span>(a); <span class="fn">cudaFree</span>(b); <span class="fn">cudaFree</span>(c);
+}
+<span class="cm">// Build:  nvcc -arch=sm_87 add.cu -o add   (sm_87 = Orin Ampere)</span>
+<span class="cm">//         nvcc -arch=sm_101 add.cu -o add  (sm_101 = Thor Blackwell, expected)</span></code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Use unified memory on Jetson</div>
+        <p>On a discrete-GPU desktop, <code>cudaMallocManaged</code> hides PCIe transfers behind page faults &mdash; usually slower than explicit <code>cudaMemcpyAsync</code>. On Jetson the GPU sits on the same LPDDR5 bus as the CPU, so unified memory is <em>actually free</em>: no PCIe, no copy. Default to <code>cudaMallocManaged</code> on Jetson; reach for explicit copies only when you need pinned host memory for a streaming sensor.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Holoscan &mdash; Real-Time Sensor AI</h2>
+    <p>Holoscan is NVIDIA's framework for <strong>ultra-low-latency sensor processing</strong>. It started in medical (endoscopy, ultrasound, MRI) where the AI overlay has to land on the surgeon's monitor inside one frame &mdash; ~33 ms at 30 fps, ~16 ms at 60 fps &mdash; with no jitter and no hidden host hops.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Why Holoscan exists</h4>
+            <ul>
+                <li>Generic sensor pipelines copy through host RAM at every step.</li>
+                <li>Each copy adds ~1&ndash;5 ms and a queue boundary.</li>
+                <li>OS schedulers introduce jitter; ROS message passing is best-effort.</li>
+                <li>Surgical / radiology workflows can't tolerate any of this.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>What Holoscan does differently</h4>
+            <ul>
+                <li><strong>Zero-copy CUDA buffers</strong> &mdash; sensor &rarr; GPU &rarr; NN &rarr; display, never touch host.</li>
+                <li><strong>Deterministic scheduling</strong> &mdash; budgeted operator slots, not best-effort threads.</li>
+                <li><strong>GXF</strong> (Graph Execution Framework) &mdash; declarative operator graphs.</li>
+                <li>Both <strong>x86</strong> (RTX A6000, RTX PRO 6000) and <strong>Jetson Orin / Thor</strong> targets.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h3>Endoscopy pipeline &mdash; 6 operators</h3>
+    <div class="diagram-vertical">
+        <div class="diagram-box accent">Camera Capture (CSI / capture card)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">Format Conversion (VIC, zero-copy)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">Resize (CUDA NPP)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">Tool Segmentation (TensorRT)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">Overlay Composition (CUDA)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box accent">Display Sink (HDMI / DisplayPort, vsync-locked)</div>
+    </div>
+
+    <div class="code-block">
+        <div class="code-header">Holoscan Python &mdash; minimal endoscopy graph</div>
+        <pre><code><span class="kw">from</span> holoscan.core <span class="kw">import</span> Application
+<span class="kw">from</span> holoscan.operators <span class="kw">import</span> (
+    VideoStreamReplayerOp, FormatConverterOp,
+    InferenceOp, HolovizOp,
+)
+
+<span class="kw">class</span> <span class="type">Endoscopy</span>(Application):
+    <span class="kw">def</span> <span class="fn">compose</span>(self):
+        src     = <span class="fn">VideoStreamReplayerOp</span>(self, name=<span class="str">"src"</span>,
+                                          directory=<span class="str">"/data/endoscopy"</span>)
+        cvt     = <span class="fn">FormatConverterOp</span>(self, name=<span class="str">"cvt"</span>,
+                                          out_dtype=<span class="str">"float32"</span>)
+        infer   = <span class="fn">InferenceOp</span>(self, name=<span class="str">"seg"</span>,
+                                    model_path_map={<span class="str">"tool_seg"</span>:
+                                        <span class="str">"/models/tool_seg.engine"</span>})
+        viz     = <span class="fn">HolovizOp</span>(self, name=<span class="str">"viz"</span>,
+                                  tensors=[{<span class="str">"name"</span>:<span class="str">"mask"</span>,<span class="str">"type"</span>:<span class="str">"color"</span>}])
+
+        self.<span class="fn">add_flow</span>(src, cvt)
+        self.<span class="fn">add_flow</span>(cvt, infer, {(<span class="str">"out"</span>, <span class="str">"receivers"</span>)})
+        self.<span class="fn">add_flow</span>(cvt, viz)        <span class="cm"># raw frame to compositor</span>
+        self.<span class="fn">add_flow</span>(infer, viz)      <span class="cm"># mask overlay to compositor</span>
+
+<span class="cm"># All tensors live in CUDA memory; the only host hop is at the model load.</span>
+<span class="fn">Endoscopy</span>().<span class="fn">run</span>()</code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The deployment shape</div>
+        <p>For a static surgical suite: an <strong>RTX 6000 Ada</strong> or <strong>RTX PRO 6000 Blackwell</strong> in a medical-grade workstation, capture card directly into the GPU. For mobile / cart-based: <strong>AGX Orin 64 GB</strong> or eventually <strong>Jetson Thor</strong>. Same Holoscan code in both cases; the operator graph doesn't change.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Isaac &mdash; Robotics Platform</h2>
+    <p>Isaac is NVIDIA's robotics stack. Three components that work together: a simulator, a set of CUDA-accelerated ROS 2 packages, and a foundation-model layer for manipulation and navigation.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Isaac Sim</h4>
+            <ul>
+                <li>Built on <strong>NVIDIA Omniverse</strong>.</li>
+                <li>GPU-accelerated PhysX physics.</li>
+                <li>Photoreal rendering for synthetic data generation.</li>
+                <li>Domain randomisation for sim-to-real.</li>
+                <li>Used for policy training, regression suites, and synthetic dataset bring-up.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Isaac ROS</h4>
+            <ul>
+                <li>Drop-in <strong>CUDA-accelerated ROS 2</strong> packages.</li>
+                <li>Visual SLAM (cuVSLAM).</li>
+                <li>Stereo depth (ESS DNN).</li>
+                <li>Semantic segmentation (PeopleSemSegNet, etc.).</li>
+                <li>Point-cloud processing.</li>
+                <li>All running on Orin / Thor at frame rate.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Isaac Manipulator / Perceptor</h4>
+            <ul>
+                <li><strong>Manipulator</strong> &mdash; foundation models for robotic pick-and-place.</li>
+                <li><strong>Perceptor</strong> &mdash; foundation models for navigation perception.</li>
+                <li>Pretrained on huge synthetic + real datasets.</li>
+                <li>Fine-tune for your gripper / floor plan / lighting.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h3>Sim-to-real loop</h3>
+    <div class="diagram-flow">
+        <div class="diagram-box">Isaac Sim (RTX desktop)</div>
+        <span class="diagram-arrow">&rarr;</span>
+        <div class="diagram-box">Synthetic data + RL training</div>
+        <span class="diagram-arrow">&rarr;</span>
+        <div class="diagram-box">TensorRT engine</div>
+        <span class="diagram-arrow">&rarr;</span>
+        <div class="diagram-box accent">AGX Orin / Thor on robot</div>
+        <span class="diagram-arrow">&rarr;</span>
+        <div class="diagram-box">Real-world telemetry</div>
+        <span class="diagram-arrow">&rarr;</span>
+        <div class="diagram-box dim">(loop)</div>
+    </div>
+
+    <div class="code-block">
+        <div class="code-header">Launching Isaac ROS visual SLAM on Orin</div>
+        <pre><code><span class="cm"># JetPack 6 + Isaac ROS humble container</span>
+docker run --runtime nvidia -it --rm \
+    --network host \
+    -v /dev/*:/dev/* \
+    nvcr.io/nvidia/isaac-ros/isaac_ros_visual_slam:latest
+
+<span class="cm"># Inside the container, launch the cuVSLAM node:</span>
+ros2 launch isaac_ros_visual_slam isaac_ros_visual_slam.launch.py \
+    setup_for_realsense_zed:=realsense
+
+<span class="cm"># Now publish your camera and TF; cuVSLAM publishes /visual_slam/tracking/odometry.</span>
+<span class="cm"># 30 Hz at 720p on AGX Orin 32 GB, &lt;5 W extra over baseline.</span></code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The Isaac promise</div>
+        <p>Train a manipulation policy in Isaac Sim on a workstation RTX. <strong>Export the same TensorRT engine</strong>. Deploy to a Thor-powered robot chassis. The Python you wrote against the simulated robot's ROS topics is the same Python that drives the real robot. That portability across the stack &mdash; Sim &rarr; ROS &rarr; SoC &rarr; deployed robot &mdash; is the whole pitch.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>DeepStream &mdash; Video Analytics at the Edge</h2>
+    <p>DeepStream is the pipeline framework for <strong>multi-camera video analytics</strong>. Built on GStreamer, it composes the canonical "decode &rarr; infer &rarr; track &rarr; encode" pipeline with hardware codecs (NVDEC/NVENC) and TensorRT inference, and scales to dozens of streams on a single Orin.</p>
+
+    <div class="diagram-vertical">
+        <div class="diagram-box">RTSP / CSI / file source &times; N</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box accent">NVDEC (hardware H.264 / H.265 / AV1 decode)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">nvstreammux (batch frames across cameras)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box accent">Primary detector (TensorRT, INT8)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">nvtracker (NvDCF / Re-ID)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box accent">Secondary classifier (per detection)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box">OSD overlay (CUDA)</div>
+        <span class="diagram-arrow">&darr;</span>
+        <div class="diagram-box accent">NVENC + RTSP / Kafka / message broker out</div>
+    </div>
+
+    <h3>What you get for free</h3>
+    <ul>
+        <li>Hardware decode of <strong>30+ HD streams in real time</strong> on a single AGX Orin.</li>
+        <li>Cross-stream batching: one TensorRT call processes detections from all cameras together.</li>
+        <li>Metadata flowing alongside frames &mdash; bounding boxes, class IDs, tracker IDs.</li>
+        <li>Pluggable Kafka / Redis / MQTT sinks for fleet-level aggregation.</li>
+    </ul>
+
+    <h3>Where DeepStream gets used</h3>
+    <ul>
+        <li><strong>Smart cities</strong> &mdash; traffic flow, illegal parking, pedestrian counting.</li>
+        <li><strong>Retail</strong> &mdash; queue analytics, planogram compliance, dwell-time heatmaps.</li>
+        <li><strong>Perimeter security</strong> &mdash; intrusion, loitering, PPE compliance.</li>
+        <li><strong>Industrial inspection</strong> &mdash; defect detection on conveyor lines.</li>
+    </ul>
+
+    <div class="code-block">
+        <div class="code-header">DeepStream config &mdash; 4 cameras + primary + secondary + tracker</div>
+        <pre><code><span class="cm"># /opt/nvidia/deepstream/deepstream-7.0/samples/configs/4cam.txt</span>
+
+<span class="kw">[application]</span>
+enable-perf-measurement=<span class="num">1</span>
+
+<span class="kw">[source0]</span>
+type=<span class="num">4</span>           <span class="cm"># RTSP</span>
+uri=rtsp://cam01.local/stream1
+<span class="kw">[source1]</span>
+type=<span class="num">4</span>; uri=rtsp://cam02.local/stream1
+<span class="kw">[source2]</span>
+type=<span class="num">4</span>; uri=rtsp://cam03.local/stream1
+<span class="kw">[source3]</span>
+type=<span class="num">4</span>; uri=rtsp://cam04.local/stream1
+
+<span class="kw">[streammux]</span>
+batch-size=<span class="num">4</span>; width=<span class="num">1920</span>; height=<span class="num">1080</span>
+
+<span class="kw">[primary-gie]</span>          <span class="cm"># PeopleNet INT8 from NGC</span>
+model-engine-file=peoplenet_int8.engine
+batch-size=<span class="num">4</span>; interval=<span class="num">0</span>
+
+<span class="kw">[tracker]</span>
+ll-lib-file=libnvds_nvmultiobjecttracker.so
+ll-config-file=tracker_NvDCF_perf.yml
+
+<span class="kw">[secondary-gie0]</span>       <span class="cm"># Vehicle / accessory classifier</span>
+model-engine-file=vehicle_classifier.engine
+operate-on-gie-id=<span class="num">1</span>; operate-on-class-ids=<span class="num">2</span>
+
+<span class="kw">[sink0]</span>
+type=<span class="num">6</span>           <span class="cm"># MsgBroker (Kafka)</span>
+msg-broker-conn-str=kafka.local;<span class="num">9092</span>;deepstream-events
+<span class="kw">[sink1]</span>
+type=<span class="num">4</span>           <span class="cm"># RTSP out for review</span>
+rtsp-port=<span class="num">8554</span></code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The Orin sweet spot</div>
+        <p>An AGX Orin 32 GB will comfortably handle <strong>30&times; 1080p30 streams</strong> with a PeopleNet primary and a secondary classifier, with the GPU running at &lt;70% and the DLAs idle &mdash; you have room to add a re-ID model or a ANPR classifier on top. Below that, an <strong>Orin NX 16 GB</strong> handles ~16 streams; an <strong>Orin Nano 8 GB</strong> handles ~6.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>LLMs at the Edge &mdash; Practical Numbers</h2>
+    <p>Edge LLMs have become real in 2025&ndash;26. Not because the silicon got that much bigger &mdash; it didn't &mdash; but because <em>quantisation got that much better</em> and small models got <em>that much smarter</em>. A 1&ndash;8 B model on an Orin is now a viable on-device assistant.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Model + quant</th><th>Hardware</th><th>tok/s (decode)</th><th>Power</th><th>Use case</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Llama-3-1B BF16</td><td>Orin Nano 8 GB</td><td>~25</td><td>~10 W</td><td>Voice agent on a battery device</td></tr>
+                <tr><td>Phi-3-mini q4 (3.8B)</td><td>Orin NX 16 GB</td><td>~30</td><td>~15 W</td><td>Drone narrator, robot dialogue</td></tr>
+                <tr><td>Llama-3-8B q4_K_M</td><td>AGX Orin 64 GB</td><td>~12</td><td>~30 W</td><td>On-board assistant in a vehicle</td></tr>
+                <tr><td>Llama-3-8B FP8</td><td>Jetson Thor 128 GB</td><td>~25 (proj.)</td><td>~50 W</td><td>VLM stack for humanoid robot</td></tr>
+                <tr><td>Whisper-medium (ASR)</td><td>AGX Orin 64 GB</td><td>~6&times; real-time</td><td>~20 W</td><td>Local dictation / live captions</td></tr>
+                <tr><td>70B Q4 split DGX Spark + Thor</td><td>2-box prototype</td><td>experimental</td><td>~400 W total</td><td>Workstation-class on-prem RAG</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>Why the edge wins for some workloads</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Latency wins</h4>
+            <ul>
+                <li><strong>50&ndash;100 ms TTFT</strong> for a small LLM on Orin.</li>
+                <li>Cloud round-trip is <strong>300&ndash;1000 ms</strong> end-to-end (network + queueing + cold start).</li>
+                <li>For voice or closed-loop control the difference is the difference between "feels alive" and "feels broken".</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Privacy wins</h4>
+            <ul>
+                <li>Patient data never leaves the surgical cart.</li>
+                <li>Factory IP never leaves the cell.</li>
+                <li>Soldier comms never leave the radio.</li>
+                <li>Your assistant doesn't need a working internet connection.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">The two-box edge LLM pattern</div>
+        <p>An emerging recipe for prosumer / lab use: <strong>DGX Spark</strong> (128 GB unified, ~273 GB/s) for a big base model + <strong>Jetson Thor</strong> (128 GB unified, similar bandwidth) for a perception / VLM head, linked over 100 GbE. Together they hold a 70B-class model split FP4 across the two pools, with Thor as the gateway closest to the sensors. It's not production-grade today &mdash; bandwidth between the two boxes is the cliff &mdash; but it's where on-prem 70B at ~400 W total is heading.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-11">
+    <div class="slide-number">11</div>
+    <h2>Interactive: Edge Use-Case Picker</h2>
+    <p>Pick a workload, a power constraint, and a latency budget. The planner suggests an SoM, the rough TOPS / RAM / price target, and which JetPack frameworks you'll lean on.</p>
+
+    <div class="control-panel">
+        <div class="control-row">
+            <label for="ed-wl">Workload</label>
+            <select id="ed-wl">
+                <option value="cam">Smart camera analytics</option>
+                <option value="robot" selected>Robot perception (ROS)</option>
+                <option value="surg">Surgical AI / Holoscan</option>
+                <option value="drone">Drone autonomy</option>
+                <option value="llm">Edge LLM 1&ndash;8 B</option>
+                <option value="ind">Industrial inspection</option>
+                <option value="ivi">In-vehicle infotainment</option>
+            </select>
+        </div>
+        <div class="control-row">
+            <label for="ed-pwr">Power constraint</label>
+            <select id="ed-pwr">
+                <option value="batt">Battery (&lt;15 W sustained)</option>
+                <option value="grid" selected>Grid power (no constraint)</option>
+                <option value="auto">Automotive (12/24 V, ~30&ndash;60 W cap)</option>
+            </select>
+        </div>
+        <div class="control-row">
+            <label for="ed-lat">Latency budget</label>
+            <select id="ed-lat">
+                <option value="10">10 ms (closed loop control)</option>
+                <option value="50" selected>50 ms (perception)</option>
+                <option value="200">200 ms (interactive)</option>
+                <option value="1000">1 s (batch / async)</option>
+            </select>
+        </div>
+        <div id="ed-out" class="result-box"></div>
+        <div class="metric-grid">
+            <div class="metric"><div class="metric-label">SoM</div><div class="metric-value" id="ed-som">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">TOPS target</div><div class="metric-value" id="ed-tops">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">RAM</div><div class="metric-value" id="ed-ram">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Approx price</div><div class="metric-value" id="ed-price">&mdash;</div></div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        const wl = {
+            cam:   { name:'Smart camera analytics', tops:50,  ram:8,  stack:['DeepStream','TensorRT'] },
+            robot: { name:'Robot perception (ROS)', tops:100, ram:16, stack:['Isaac ROS','TensorRT'] },
+            surg:  { name:'Surgical AI / Holoscan', tops:200, ram:32, stack:['Holoscan','TensorRT'] },
+            drone: { name:'Drone autonomy',         tops:70,  ram:8,  stack:['Isaac ROS','TensorRT','VPI'] },
+            llm:   { name:'Edge LLM 1-8B',          tops:200, ram:32, stack:['JetPack only','TensorRT-LLM'] },
+            ind:   { name:'Industrial inspection',  tops:70,  ram:16, stack:['DeepStream','TensorRT'] },
+            ivi:   { name:'In-vehicle infotainment',tops:100, ram:16, stack:['JetPack','DeepStream'] }
+        };
+        const soms = [
+            { id:'nano4',  name:'Orin Nano 4 GB',  tops:20,  ram:4,  pwr:15, price:250  },
+            { id:'nano8',  name:'Orin Nano 8 GB',  tops:40,  ram:8,  pwr:15, price:499  },
+            { id:'nx8',    name:'Orin NX 8 GB',    tops:70,  ram:8,  pwr:25, price:399  },
+            { id:'nx16',   name:'Orin NX 16 GB',   tops:100, ram:16, pwr:25, price:599  },
+            { id:'agx32',  name:'AGX Orin 32 GB',  tops:200, ram:32, pwr:40, price:1499 },
+            { id:'agx64',  name:'AGX Orin 64 GB',  tops:275, ram:64, pwr:60, price:1999 },
+            { id:'thor',   name:'Jetson Thor 128 GB', tops:1500, ram:128, pwr:130, price:3499 }
+        ];
+        function rec(){
+            const w = wl[document.getElementById('ed-wl').value];
+            const pwr = document.getElementById('ed-pwr').value;
+            const latMs = parseInt(document.getElementById('ed-lat').value, 10);
+
+            // Power cap
+            const pcap = pwr === 'batt' ? 15 : pwr === 'auto' ? 60 : 200;
+
+            // Tighter latency &rarr; bump TOPS target a notch
+            let topsNeeded = w.tops;
+            if (latMs <= 10)  topsNeeded *= 1.5;
+            if (latMs <= 50 && w.name.indexOf('LLM') < 0)  topsNeeded *= 1.0;
+            if (latMs >= 1000) topsNeeded *= 0.7;
+
+            // Surgical workload mostly grid power
+            if (w.name.indexOf('Surgical') >= 0 && pwr === 'batt') {
+                // can't really do battery surgery; force grid
+            }
+
+            // Edge LLM forces enough RAM for the model
+            let ramNeeded = w.ram;
+
+            // Pick smallest SoM that meets BOTH tops and ram, within power cap
+            const candidate = soms.find(s =>
+                s.tops >= topsNeeded && s.ram >= ramNeeded && s.pwr <= pcap
+            ) || soms[soms.length - 1];
+
+            // For LLMs preferring Thor when grid + low latency
+            let pick = candidate;
+            if (w.name.indexOf('LLM') >= 0 && pwr === 'grid' && latMs <= 50) {
+                pick = soms.find(s => s.id === 'thor') || candidate;
+            }
+
+            // Build stack list
+            const stack = w.stack.slice();
+            if (w.name.indexOf('LLM') >= 0 && pick.id === 'thor') {
+                stack.push('FP4 inference');
+            }
+
+            const verdictParts = [];
+            if (pwr === 'batt' && pick.pwr > 15) {
+                verdictParts.push('battery cap forces a smaller SoM than the workload ideally wants &mdash; expect to drop frame rate or model size');
+            } else {
+                verdictParts.push('SoM has enough TOPS and RAM headroom for this workload');
+            }
+            if (latMs <= 10) {
+                verdictParts.push('10 ms budget is tight: pin to a real-time kernel, use TensorRT INT8 / FP8, and consider DLA offload');
+            } else if (latMs <= 50) {
+                verdictParts.push('50 ms budget is the typical perception sweet spot for Orin-class hardware');
+            } else {
+                verdictParts.push('latency budget gives you room to batch, run secondary classifiers, or hold larger models');
+            }
+            if (w.name.indexOf('Surgical') >= 0) {
+                verdictParts.push('Holoscan zero-copy graphs are essential here &mdash; do not roll your own GStreamer pipeline');
+            }
+            if (w.name.indexOf('LLM') >= 0) {
+                verdictParts.push('use TensorRT-LLM with INT4 / FP8 weights and quantised KV cache; expect ~10&ndash;30 tok/s on Orin and ~20&ndash;50 tok/s on Thor');
+            }
+
+            document.getElementById('ed-som').textContent   = pick.name;
+            document.getElementById('ed-tops').textContent  = Math.round(topsNeeded) + ' TOPS';
+            document.getElementById('ed-ram').textContent   = pick.ram + ' GB';
+            document.getElementById('ed-price').textContent = '$' + pick.price;
+
+            document.getElementById('ed-out').innerHTML =
+                '<div><span class="line-label">workload</span> &rarr; <span class="line-val">' + w.name + '</span></div>' +
+                '<div><span class="line-label">power cap</span> &rarr; <span class="line-val">' + pcap + ' W</span></div>' +
+                '<div><span class="line-label">latency budget</span> &rarr; <span class="line-val">' + latMs + ' ms</span></div>' +
+                '<div><span class="line-label">software stack</span> &rarr; <span class="line-val">' + stack.join(' + ') + '</span></div>' +
+                '<div style="margin-top:0.5rem;color:var(--text-secondary);">' +
+                    verdictParts.map(v => '&bull; ' + v).join('<br>') +
+                '</div>';
+        }
+        ['ed-wl','ed-pwr','ed-lat'].forEach(id => document.getElementById(id).addEventListener('change', rec));
+        rec();
+    })();
+    </script>
+
+    <div class="callout">
+        <div class="callout-label">The cheat-sheet shape</div>
+        <p>Battery devices live on <strong>Orin Nano</strong>. Mobile robots and drones live on <strong>Orin NX</strong>. Vehicles, multi-stream analytics, and surgical carts live on <strong>AGX Orin</strong>. Humanoids, autonomous trucks, and on-prem edge LLMs in the 8&ndash;14 B class live on <strong>Jetson Thor</strong>. The framework choice is workload-driven, not SoM-driven: video &rarr; DeepStream, robotics &rarr; Isaac, sensors-with-display &rarr; Holoscan, language &rarr; TensorRT-LLM on bare JetPack.</p>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════ Footer ════════════════════════════════════ -->
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLMs#nvidia-gpu-architectures">NVIDIA GPU Architectures Series</a></p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;"><a href="https://github.com/BrendanJamesLynskey/LLMs#nvidia-gpu-architectures">Back to Series Index</a></p>
+</footer>
+
+<script>
+    // Smooth scroll for TOC links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // Subtle fade-in on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateY(30px)';
+        slide.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(slide);
+    });
+</script>
+
+</body>
+</html>
