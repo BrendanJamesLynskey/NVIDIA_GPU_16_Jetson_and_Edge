@@ -823,7 +823,7 @@
             <h4>What the edge wants from a GPU</h4>
             <ul>
                 <li>Real CUDA &mdash; the same kernels you trained with.</li>
-                <li>TensorRT &mdash; INT8 / FP16 / FP8 graph optimisation.</li>
+                <li>TensorRT &mdash; INT8 / FP16 / BF16 graph optimisation (FP8 / FP4 only on Thor-class Blackwell).</li>
                 <li>Hardware video codecs (NVENC/NVDEC) for camera streams.</li>
                 <li>Image signal processors and direct sensor capture (CSI, GMSL).</li>
                 <li>A real Linux distribution with proper drivers.</li>
@@ -1628,7 +1628,7 @@ rtsp-port=<span class="num">8554</span></code></pre>
                 verdictParts.push('SoM has enough TOPS and RAM headroom for this workload');
             }
             if (latMs <= 10) {
-                verdictParts.push('10 ms budget is tight: pin to a real-time kernel, use TensorRT INT8 / FP8, and consider DLA offload');
+                verdictParts.push('10 ms budget is tight: pin to a real-time kernel, use TensorRT INT8 (or FP8 / FP4 on Thor), and consider DLA offload');
             } else if (latMs <= 50) {
                 verdictParts.push('50 ms budget is the typical perception sweet spot for Orin-class hardware');
             } else {
@@ -1638,7 +1638,7 @@ rtsp-port=<span class="num">8554</span></code></pre>
                 verdictParts.push('Holoscan zero-copy graphs are essential here &mdash; do not roll your own GStreamer pipeline');
             }
             if (w.name.indexOf('LLM') >= 0) {
-                verdictParts.push('use TensorRT-LLM with INT4 / FP8 weights and quantised KV cache; expect ~10&ndash;30 tok/s on Orin and ~20&ndash;50 tok/s on Thor');
+                verdictParts.push('use TensorRT-LLM with INT4 / INT8 weights and quantised KV cache on Orin (Ampere has no FP8); FP8 / FP4 is Thor-only. Expect ~10&ndash;30 tok/s on Orin and ~20&ndash;50 tok/s on Thor');
             }
 
             document.getElementById('ed-som').textContent   = pick.name;
